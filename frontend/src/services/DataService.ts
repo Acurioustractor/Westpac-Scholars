@@ -157,7 +157,50 @@ export const loadScholarData = async (): Promise<AnalysisData> => {
   try {
     // In a production environment, these would be API calls
     // For this demo, we'll load the CSV file directly
-    const scholars = await loadCSV('/data/all_westpac_scholars.csv') as Scholar[];
+    let scholars: Scholar[] = [];
+    
+    try {
+      // Try to load CSV data
+      const publicUrl = process.env.PUBLIC_URL || '';
+      scholars = await loadCSV(`${publicUrl}/data/all_westpac_scholars.csv`) as Scholar[];
+    } catch (error) {
+      console.warn('Failed to load CSV, using fallback data:', error);
+      // Fallback data if CSV loading fails
+      scholars = [
+        {
+          id: '1',
+          name: 'Jane Smith',
+          scholarship_type: 'Future Leaders',
+          year: '2023',
+          university: 'University of Sydney',
+          state: 'NSW',
+          focus_area: 'Technology',
+          quote: 'The future belongs to those who believe in the power of their dreams.',
+          about: 'Jane is passionate about leveraging technology to solve social challenges.',
+          linkedin_url: 'https://linkedin.com/in/janesmith',
+          image_url: '/images/placeholder.jpg',
+          passion_1: 'AI',
+          passion_2: 'Healthcare',
+          passion_3: 'Education'
+        },
+        {
+          id: '2',
+          name: 'John Doe',
+          scholarship_type: 'Research Fellowship',
+          year: '2022',
+          university: 'University of Melbourne',
+          state: 'VIC',
+          focus_area: 'Climate Change',
+          quote: 'Research is formalized curiosity. It is poking and prying with a purpose.',
+          about: 'John focuses on sustainable agriculture methods that can withstand climate challenges.',
+          linkedin_url: 'https://linkedin.com/in/johndoe',
+          image_url: '/images/placeholder.jpg',
+          passion_1: 'Sustainability',
+          passion_2: 'Agriculture',
+          passion_3: 'Research'
+        }
+      ];
+    }
     
     // Extract themes from the scholar data
     const themes = extractThemes(scholars);
