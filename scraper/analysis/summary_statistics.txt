@@ -1,0 +1,54 @@
+Westpac Scholars Analysis Summary
+================================
+
+Total number of scholars: 918
+
+Scholars by Year:
+  2016: 106 scholars
+  2017: 117 scholars
+  2018: 89 scholars
+  2019: 87 scholars
+  2020: 58 scholars
+  2021: 83 scholars
+  2022: 92 scholars
+  2023: 91 scholars
+  2024: 97 scholars
+  2025: 98 scholars
+
+Scholarship Types:
+  Asian Exchange: 326 scholars
+  Young Technologists: 299 scholars
+  Future Leaders: 170 scholars
+  Social Change Fellowship: 100 scholars
+  Research Fellowship: 23 scholars
+
+Focus Areas:
+  Thriving tech sector: 360 scholars
+  Australia in Asia: 318 scholars
+  An inclusive country: 187 scholars
+  Sustainable futures: 52 scholars
+   An inclusive country: 1 scholars
+
+Top 10 Universities:
+  Queensland University of Technology: 76 scholars
+  The University of Sydney: 74 scholars
+  The University of Melbourne: 72 scholars
+  The Australian National University: 69 scholars
+  The University of Wollongong: 62 scholars
+  RMIT University: 60 scholars
+  Monash University: 59 scholars
+  The University of Queensland: 58 scholars
+  UNSW: 49 scholars
+  The University of Western Australia: 46 scholars
+
+Scholars by State/Territory:
+  New South Wales: 289 scholars
+  Victoria: 238 scholars
+  Queensland: 146 scholars
+  Western Australia: 100 scholars
+  Australian Capital Territory: 69 scholars
+  South Australia: 53 scholars
+  Tasmania: 17 scholars
+  Northern Territory : 3 scholars
+  Other: 2 scholars
+  Northern Territory: 1 scholars
