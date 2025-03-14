@@ -65,27 +65,55 @@ const loadCSV = async (filePath: string): Promise<any[]> => {
     const fullPath = `${publicUrl}${filePath}`;
     console.log(`Attempting to load CSV from: ${fullPath}`);
     
-    const response = await axios.get(fullPath);
-    console.log(`CSV data received, length: ${response.data.length} characters`);
+    let responseData: string;
+    try {
+      // First try with axios
+      const response = await axios.get(fullPath);
+      responseData = response.data;
+    } catch (axiosError: any) {
+      console.warn(`Axios failed to load CSV, trying fetch API instead:`, axiosError);
+      
+      // Try with plain fetch API as a fallback
+      const response = await fetch(fullPath);
+      if (!response.ok) {
+        throw new Error(`Fetch failed with status: ${response.status}`);
+      }
+      responseData = await response.text();
+    }
     
-    return new Promise((resolve, reject) => {
-      Papa.parse(response.data, {
+    console.log(`CSV data received, length: ${responseData.length} characters`);
+    
+    // Add extra check to make sure we got actual data
+    if (!responseData || responseData.length < 100) {
+      throw new Error(`Received invalid or too small CSV data: ${responseData}`);
+    }
+    
+    return new Promise<any[]>((resolve, reject) => {
+      Papa.parse(responseData, {
         header: true,
         skipEmptyLines: true,
-        complete: (results) => {
-          console.log(`CSV parsed successfully. Row count: ${results.data.length}`);
-          if (results.data.length > 0) {
-            console.log(`Sample row:`, results.data[0]);
+        complete: (results: Papa.ParseResult<any>) => {
+          console.log(`CSV parsing complete. Found ${results.data.length} rows.`);
+          
+          if (results.errors && results.errors.length > 0) {
+            console.warn('CSV parsing completed with errors:', results.errors);
           }
+          
+          if (results.data.length === 0) {
+            reject(new Error('CSV parsed successfully but contained no data rows'));
+            return;
+          }
+          
+          console.log(`First row sample:`, results.data[0]);
           resolve(results.data);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error(`Error parsing CSV: ${error}`);
           reject(error);
         }
       });
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error loading CSV from ${filePath}:`, error);
     throw error;
   }
@@ -170,35 +198,73 @@ export const loadScholarData = async (): Promise<AnalysisData> => {
     // For this demo, we'll load the CSV file directly
     let scholars: Scholar[] = [];
     
-    try {
-      // Try to load CSV data
-      const publicUrl = process.env.PUBLIC_URL || '';
-      const rawData = await loadCSV(`${publicUrl}/data/all_westpac_scholars.csv`);
+    // Define data sources to try in order
+    const publicUrl = process.env.PUBLIC_URL || '';
+    const dataSources = [
+      `${publicUrl}/data/all_westpac_scholars.csv`,
+      `${publicUrl}/data/test_scholars.csv`
+    ];
+    
+    let loadSuccess = false;
+    let lastError: any = null;
+    
+    // Try each data source in order until one succeeds
+    for (const dataPath of dataSources) {
+      if (loadSuccess) break; // Skip if we already have data
       
-      // Map the raw data to our Scholar interface - column names in CSV don't match exactly
-      scholars = rawData.map((item: any) => ({
-        id: item.id || '',
-        name: item.name || '',
-        scholarship_type: item.scholarship_type || '',
-        year: item.year || '',
-        university: item.university || '',
-        state: item.state || '',
-        focus_area: item.focus_area || '',
-        quote: item.quote || '',
-        about: item.about || '',
-        linkedin_url: item.linkedin_url || '',
-        image_url: item.image_url || '/images/placeholder.jpg',
-        passion_1: item.passion_1 || '',
-        passion_2: item.passion_2 || '',
-        passion_3: item.passion_3 || '',
-        passion_4: item.passion_4 || '',
-        passion_5: item.passion_5 || ''
-      }));
-      
-      console.log(`Loaded ${scholars.length} scholars from CSV`);
-    } catch (error) {
-      console.warn('Failed to load CSV, using fallback data:', error);
-      // Fallback data if CSV loading fails
+      try {
+        console.log(`Attempting to load data from: ${dataPath}`);
+        
+        const rawData = await loadCSV(dataPath);
+        console.log(`Successfully loaded ${rawData.length} raw data records from ${dataPath}`);
+        
+        // Map the raw data to our Scholar interface
+        const mappedScholars = rawData
+          .filter((item: any) => item && (item.id || item.name)) // Ensure we have valid entries
+          .map((item: any) => {
+            const scholar: Scholar = {
+              id: item.id || String(Math.random()).substring(2, 10), // Generate ID if missing
+              name: item.name || 'Unknown Scholar',
+              scholarship_type: item.scholarship_type || '',
+              year: item.year || '',
+              university: item.university || '',
+              state: item.state || '',
+              focus_area: item.focus_area || '',
+              quote: item.quote || '',
+              about: item.about || '',
+              linkedin_url: item.linkedin_url || '',
+              image_url: item.image_url || '/images/placeholder.jpg'
+            };
+            
+            // Add optional fields if present
+            if (item.passion_1) scholar.passion_1 = item.passion_1;
+            if (item.passion_2) scholar.passion_2 = item.passion_2;
+            if (item.passion_3) scholar.passion_3 = item.passion_3;
+            if (item.passion_4) scholar.passion_4 = item.passion_4;
+            if (item.passion_5) scholar.passion_5 = item.passion_5;
+            
+            return scholar;
+          });
+        
+        console.log(`Mapped ${mappedScholars.length} scholars from ${dataPath}`);
+        
+        // If we have valid scholars after mapping, use them
+        if (mappedScholars.length > 0) {
+          scholars = mappedScholars;
+          loadSuccess = true;
+          console.log(`Successfully loaded data from ${dataPath}`);
+        } else {
+          console.warn(`Data source ${dataPath} returned 0 valid scholars after mapping`);
+        }
+      } catch (error: any) {
+        console.warn(`Failed to load or parse data from ${dataPath}:`, error);
+        lastError = error;
+      }
+    }
+    
+    // If all data sources failed, use fallback data
+    if (!loadSuccess || scholars.length === 0) {
+      console.warn('All data sources failed or returned no data, using fallback data:', lastError);
       scholars = [
         {
           id: '1',
@@ -231,6 +297,22 @@ export const loadScholarData = async (): Promise<AnalysisData> => {
           passion_1: 'Sustainability',
           passion_2: 'Agriculture',
           passion_3: 'Research'
+        },
+        {
+          id: '3',
+          name: 'Emily Wong',
+          scholarship_type: 'Social Innovation',
+          year: '2021',
+          university: 'UNSW',
+          state: 'NSW',
+          focus_area: 'Education',
+          quote: 'Education is the most powerful weapon.',
+          about: 'Emily works on improving access to education in underserved communities.',
+          linkedin_url: 'https://linkedin.com/in/emilywong',
+          image_url: '/images/placeholder.jpg',
+          passion_1: 'Teaching',
+          passion_2: 'Technology',
+          passion_3: 'Policy'
         }
       ];
     }
