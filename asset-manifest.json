@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Westpac-Scholars/static/css/main.e6c13ad2.css",
-    "main.js": "/Westpac-Scholars/static/js/main.759da729.js",
+    "main.js": "/Westpac-Scholars/static/js/main.a87c98eb.js",
     "static/js/453.d855a71b.chunk.js": "/Westpac-Scholars/static/js/453.d855a71b.chunk.js",
     "index.html": "/Westpac-Scholars/index.html",
     "main.e6c13ad2.css.map": "/Westpac-Scholars/static/css/main.e6c13ad2.css.map",
-    "main.759da729.js.map": "/Westpac-Scholars/static/js/main.759da729.js.map",
+    "main.a87c98eb.js.map": "/Westpac-Scholars/static/js/main.a87c98eb.js.map",
     "453.d855a71b.chunk.js.map": "/Westpac-Scholars/static/js/453.d855a71b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.759da729.js"
+    "static/js/main.a87c98eb.js"
   ]
 }
