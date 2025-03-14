@@ -60,7 +60,9 @@ export interface AnalysisData {
 // Function to load CSV data
 const loadCSV = async (filePath: string): Promise<any[]> => {
   try {
-    const response = await axios.get(filePath);
+    // Use process.env.PUBLIC_URL to ensure paths work on GitHub Pages
+    const publicUrl = process.env.PUBLIC_URL || '';
+    const response = await axios.get(`${publicUrl}${filePath}`);
     return new Promise((resolve, reject) => {
       Papa.parse(response.data, {
         header: true,
