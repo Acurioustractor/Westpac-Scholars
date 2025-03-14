@@ -62,14 +62,25 @@ const loadCSV = async (filePath: string): Promise<any[]> => {
   try {
     // Use process.env.PUBLIC_URL to ensure paths work on GitHub Pages
     const publicUrl = process.env.PUBLIC_URL || '';
-    const response = await axios.get(`${publicUrl}${filePath}`);
+    const fullPath = `${publicUrl}${filePath}`;
+    console.log(`Attempting to load CSV from: ${fullPath}`);
+    
+    const response = await axios.get(fullPath);
+    console.log(`CSV data received, length: ${response.data.length} characters`);
+    
     return new Promise((resolve, reject) => {
       Papa.parse(response.data, {
         header: true,
+        skipEmptyLines: true,
         complete: (results) => {
+          console.log(`CSV parsed successfully. Row count: ${results.data.length}`);
+          if (results.data.length > 0) {
+            console.log(`Sample row:`, results.data[0]);
+          }
           resolve(results.data);
         },
         error: (error) => {
+          console.error(`Error parsing CSV: ${error}`);
           reject(error);
         }
       });
@@ -162,7 +173,29 @@ export const loadScholarData = async (): Promise<AnalysisData> => {
     try {
       // Try to load CSV data
       const publicUrl = process.env.PUBLIC_URL || '';
-      scholars = await loadCSV(`${publicUrl}/data/all_westpac_scholars.csv`) as Scholar[];
+      const rawData = await loadCSV(`${publicUrl}/data/all_westpac_scholars.csv`);
+      
+      // Map the raw data to our Scholar interface - column names in CSV don't match exactly
+      scholars = rawData.map((item: any) => ({
+        id: item.id || '',
+        name: item.name || '',
+        scholarship_type: item.scholarship_type || '',
+        year: item.year || '',
+        university: item.university || '',
+        state: item.state || '',
+        focus_area: item.focus_area || '',
+        quote: item.quote || '',
+        about: item.about || '',
+        linkedin_url: item.linkedin_url || '',
+        image_url: item.image_url || '/images/placeholder.jpg',
+        passion_1: item.passion_1 || '',
+        passion_2: item.passion_2 || '',
+        passion_3: item.passion_3 || '',
+        passion_4: item.passion_4 || '',
+        passion_5: item.passion_5 || ''
+      }));
+      
+      console.log(`Loaded ${scholars.length} scholars from CSV`);
     } catch (error) {
       console.warn('Failed to load CSV, using fallback data:', error);
       // Fallback data if CSV loading fails
